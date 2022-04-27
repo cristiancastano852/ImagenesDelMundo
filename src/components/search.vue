@@ -103,6 +103,7 @@ export default {
         this.items=null
         this.items=data
         this.searchSee=true;
+        this.query=''
 
       }
       if(this.items==undefined){
