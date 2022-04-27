@@ -87,7 +87,7 @@ export default {
   },
   methods : {
 
-    async search(start,img){
+    async search(){
       this.word=this.query;
       this.resultT=true;
       this.resultF=false;
@@ -95,18 +95,13 @@ export default {
       if(this.query==''){
          alert(`¡Debe ingresar una palabra!`);
       }else{
-      do{
         let data = await axios.get('https://customsearch.googleapis.com/customsearch/v1?cx=a5b24d23f03933333&q='+this.query+'&key=AIzaSyCywetHcEdbqC-fhAStCW-ERvH84BLFbGA&searchType=image&num=3')
         .then( res=>{
-          if(img){start++}
           return res.data.items;
         })
         this.querySearch=true
         this.items=null
         this.items=data
-      }
-      while(img && start<5)
-      scroll(0, 0)
       }
       if(this.items==undefined){
        this.resultF=true;  
