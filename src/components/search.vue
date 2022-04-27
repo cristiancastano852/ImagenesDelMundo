@@ -10,13 +10,14 @@
       </div>
 
       <div class="search">
-      <h1 v-if="bool">Busca tu imagen</h1>
+      <h1 v-if="bool">Vendedores ¡a correr!</h1>
+      <h2 v-if="bool">Busca tu imagen</h2>
         <form action="" class="needs-validation">
           <input type="text" v-model="query" placeholder="Ingrese lo que deseea buscar" v-if="bool"> <br>
           <h2 v-if="seeInvoice">Ganador '{{this.nameWinner}}' ¡Felicitaciones!</h2>
           <b-button @click="newSearch()" class="ImgButton" v-if="seeInvoice">Empezar de nuevo</b-button>
           <b-button @click="search(1,true)" class="ImgButton" v-if="bool">Buscar imagen</b-button>
-          <b-button v-b-modal.modal-1 @click="sellersList(sellers)"  class="ImgButton" v-if="bool">Mostrar resultados</b-button>
+          <b-button v-b-modal.modal-1 @click="sellersList(sellers)"  class="ImgButton" v-if="bool">Mostrar Puntuación</b-button>
           <b-button v-b-modal.modal-2 class="ImgButton" v-if="seeInvoice" >Ver factura</b-button>
         </form>
       </div>
@@ -91,7 +92,6 @@ export default {
       this.word=this.query;
       this.resultT=true;
       this.resultF=false;
-      this.searchSee=true;
       if(this.query==''){
          alert(`¡Debe ingresar una palabra!`);
       }else{
@@ -102,6 +102,8 @@ export default {
         this.querySearch=true
         this.items=null
         this.items=data
+        this.searchSee=true;
+
       }
       if(this.items==undefined){
        this.resultF=true;  
