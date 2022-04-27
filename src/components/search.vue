@@ -1,56 +1,57 @@
 <template>
   <div class="hello">
-
-    <div>
-        <b-navbar toggleable="lg" type="dark" variant="info">
-          <b-navbar-brand href="#">Imágenes del mundo</b-navbar-brand>
-          <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-          <b-collapse id="nav-collapse" is-nav>
-
-          </b-collapse>
-        </b-navbar>
-    </div>
-
-    <div class="search">
-    <h1>Busca tu imagen</h1>
-      <form action="" class="needs-validation">
-        <input type="text" v-model="query" @keyup.enter="search(1,true)" placeholder="Ingrese lo que deseea buscar" required> <br>
-        <b-button @click="search(1,true)" class="ImgButton">Buscar imagen</b-button>
-        <b-button v-b-modal.modal-1 @click="sellersList(sellers)"  class="ImgButton">Mostrar resultados</b-button>
-      </form>
-    </div>
-
-    <div>
-      <b-card v-if="querySearch">
-        <div v-if="querySearch">
-          <h5 v-if="resultT">Los vendedores te traen estas imagenes de "{{this.word}}", ¿Cúal eliges?</h5>
-          <h5 v-if="resultF">Los vendedores no encontraron imagenes para "{{this.query}}"</h5>
-
-          <div class="imgResults">
-            <div v-for="item, idx in items" :key="item.title" class="imgResults">
-              <h6>Imagen de {{sellers[idx].name}}</h6>
-              <a :href="item.link"><img :src="item.link" :alt="item.title" target="_blank">
-               <b-button variant="dark" href="#" @click="sumPoints(idx)">Elegir</b-button>
-              </a>
-            </div>
-          </div>
-  
-        </div>
-      </b-card>
       <div>
-          <b-modal id="modal-1" title="Puntuación">
-            <sellers :array-sellers="sellersLists"></sellers>
-            <p class="my-4"></p>
-          </b-modal>
-      </div>
-    </div>
+          <b-navbar toggleable="lg" type="dark" variant="info">
+            <b-navbar-brand href="#" style="text-align:center">Imágenes del mundo</b-navbar-brand>
+            <b-collapse id="nav-collapse" is-nav>
 
-    <div v-if="seeInvoice">
-      <b-modal id="modal-2" title="Factura">
-        <invoice :array-sellers="Invoices"></invoice>
-        <p class="my-4"></p>
-      </b-modal>
-    </div>
+            </b-collapse>
+          </b-navbar>
+      </div>
+
+      <div class="search">
+      <h1 v-if="bool">Busca tu imagen</h1>
+        <form action="" class="needs-validation">
+          <input type="text" v-model="query" placeholder="Ingrese lo que deseea buscar" v-if="bool"> <br>
+          <h2 v-if="seeInvoice">Ganador '{{this.nameWinner}}' ¡Felicitaciones!</h2>
+          <b-button @click="newSearch()" class="ImgButton" v-if="seeInvoice">Empezar de nuevo</b-button>
+          <b-button @click="search(1,true)" class="ImgButton" v-if="bool">Buscar imagen</b-button>
+          <b-button v-b-modal.modal-1 @click="sellersList(sellers)"  class="ImgButton" v-if="bool">Mostrar resultados</b-button>
+          <b-button v-b-modal.modal-2 class="ImgButton" v-if="seeInvoice" >Ver factura</b-button>
+        </form>
+      </div>
+
+      <div>
+        <b-card v-if="querySearch">
+          <div v-if="searchSee">
+            <h5 v-if="resultT">Los vendedores te traen estas imagenes de "{{this.word}}", ¿Cúal eliges?</h5>
+            <h5 v-if="resultF">Los vendedores no encontraron imagenes para "{{this.query}}"</h5>
+
+            <div class="imgResults">
+              <div v-for="item, idx in items" :key="item.title" class="imgResults">
+                <h6>Imagen de {{sellers[idx].name}}</h6>
+                <a :href="item.link"><img :src="item.link" :alt="item.title" target="_blank">
+                <b-button variant="dark" href="#" @click="sumPoints(idx)" >Elegir</b-button>
+                </a>
+              </div>
+            </div>
+    
+          </div>
+        </b-card>
+        <div>
+            <b-modal id="modal-1" title="Puntuación">
+              <sellers :array-sellers="sellersLists"></sellers>
+              <p class="my-4"></p>
+            </b-modal>
+        </div>
+      </div>
+
+      <div v-if="seeInvoice">
+        <b-modal id="modal-2" title="Factura de Alegra" >
+          <invoice :arrayInvoice="Invoices"></invoice>
+          <p class="my-4"></p>
+        </b-modal>
+      </div>
   </div>
 </template>
 
@@ -79,7 +80,9 @@ export default {
       initialize:true,
       seeInvoice:false,
       word:'',
-      seeInvoice:false,
+      searchSee:true,
+      bool:true,
+      nameWinner:'',
     }
   },
   methods : {
@@ -88,8 +91,9 @@ export default {
       this.word=this.query;
       this.resultT=true;
       this.resultF=false;
+      this.searchSee=true;
       if(this.query==''){
-         alert(`Campo de buscar vacio`);
+         alert(`¡Debe ingresar una palabra!`);
       }else{
       do{
         let data = await axios.get('https://customsearch.googleapis.com/customsearch/v1?cx=a5b24d23f03933333&q='+this.query+'&key=AIzaSyCywetHcEdbqC-fhAStCW-ERvH84BLFbGA&searchType=image&num=3')
@@ -115,32 +119,22 @@ export default {
       if(this.initialize){
         for(const its in this.sellers){
           this.sellers[its].points=0;
+          
         }
         this.initialize=false;
       }
       //Sumo 3 puntos al vendedor de la imagen elegida
       this.sellers[idSeller].points = this.sellers[idSeller].points+3;
+      this.searchSee=false;
       //Si un vendedores acumulado 20 o mas puntos, es el ganador y procedemos a hacer la factura
       if(this.sellers[idSeller].points >= 20){
-        alert(`Ya ganó ${this.sellers[idSeller].name}`);
+        this.seeInvoice=true;
+        this.nameWinner=this.sellers[idSeller].name,
         this.createInvoice(idSeller+1);
-        this.consultInvoice();
         this.querySearch=false;
         this.seeInvoice=true;
+        this.bool=false;
       }
-    },
-
-    postEmployees: function(){
-        axios.post('https://api.alegra.com/api/v1/sellers',  {
-         name: "Alejandro",
-        },{
-         headers: {
-          Authorization: "Basic Y3Jpc3RpYW5jYXN0YW5vODUyQGdtYWlsLmNvbTo4MTNkYWEyZTI5YjFmZmUwZjAxYw=="
-        }
-        })
-        .then(response=>{
-            console.log(response.data)
-        })
     },
 
     getSellers: function(){
@@ -173,33 +167,35 @@ export default {
           finalScore=finalScore+its.points;
         }
         for(const its of this.sellers){
-          resultScore=resultScore+its.name +" puntaje de "+its.points+","
+          resultScore=resultScore+" "+its.name +" puntaje de "+its.points+","
         }
-        //alert(`RESULTADOS: ${resultScore}`);
-        // axios.post('https://api.alegra.com/api/v1/invoices',  {
-        //   "date": formatDate,
-        //   "dueDate": formatDate,
-        //   "anotation": resultScore,
-        //   "client": idWinner,
-        //   "items" : [
-        //     {
-        //       "id": 1,
-        //       "price" : 10,
-        //       "quantity" : finalScore
-        //     }
-        //   ],
-        //   "seller":idWinner,
-        //   },{
-        //  headers: {
-        //   Authorization: "Basic Y3Jpc3RpYW5jYXN0YW5vODUyQGdtYWlsLmNvbTo4MTNkYWEyZTI5YjFmZmUwZjAxYw=="
-        // }
-        // })
-        // .then(response=>{
-        //     console.log(response.data)
-        // })
-        // .catch((error) => {
-        // console.error(f)
-        // })   
+        axios.post('https://api.alegra.com/api/v1/invoices',  {
+          "date": formatDate,
+          "dueDate": formatDate,
+          "anotation": resultScore,
+          "client": idWinner,
+          "items" : [
+            {
+              "id": 1,
+              "price" : 10,
+              "quantity" : finalScore
+            }
+          ],
+          "seller":idWinner,
+          },{
+         headers: {
+          Authorization: "Basic Y3Jpc3RpYW5jYXN0YW5vODUyQGdtYWlsLmNvbTo4MTNkYWEyZTI5YjFmZmUwZjAxYw=="
+        }
+        })
+        .then(response=>{
+            console.log(response.data)
+            this.consultInvoice();
+
+        })
+        .catch((error) => {
+        console.error(f)
+        })   
+        this.consultInvoice();
     },
 
     consultInvoice: function(){
@@ -217,32 +213,9 @@ export default {
         })        
     },
 
-    createInvoiceBills: function(idWinner,sellersResults){
-      var date = new Date();
-      const formatDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
-      axios.post('https://api.alegra.com/api/v1/bills',  {
-        "date": formatDate,
-        "dueDate": formatDate,
-        "client": idWinner,
-        "items" : [
-          {
-            "id": 1,
-            "price" : 10,
-            "quantity" : 1
-          }
-        ]
-        },{
-        headers: {
-        Authorization: "Basic Y3Jpc3RpYW5jYXN0YW5vODUyQGdtYWlsLmNvbTo4MTNkYWEyZTI5YjFmZmUwZjAxYw=="
-      }
-      })
-      .then(response=>{
-          console.log(response.data)
-      })
-      .catch((error) => {
-      console.error(f)
-      })   
-    },
+    newSearch(){
+      location.reload();
+    }
   },
 
   beforeMount(){
@@ -322,9 +295,12 @@ h1{
 .siteBaslik{
   font-size: 1.5em;
 }
+.nameE{
+  text-align: center;
+}
 
 .navbar-brand { 
-  padding-left: 650px;
+  padding-left: 600px;
 
 }
 
